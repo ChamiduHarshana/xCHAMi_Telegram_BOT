@@ -1,0 +1,27 @@
+name: Telegram AI Bot
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Start Bot
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          API_KEY: ${{ secrets.API_KEY }}
+        run: node index.js
