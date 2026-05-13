@@ -3,103 +3,86 @@ require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 
+// Bot Setup
 const bot = new TelegramBot(process.env.BOT_TOKEN, {
   polling: true
 });
 
-// ඔයාගේ API URL
+// API URL
 const API_URL = process.env.API_URL;
 
+// Custom Prompt
 const SYSTEM_PROMPT = `
 You are a Sinhala AI assistant.
-Reply short.
-Talk friendly.
+Reply friendly.
+Talk like a Sri Lankan friend.
 `;
 
-console.log('Bot Running...');
+console.log('✅ Bot Running...');
 
+// Start Message
+bot.onText(/\/start/, async (msg) => {
+  const chatId = msg.chat.id;
+
+  bot.sendMessage(
+    chatId,
+    `👋 Welcome to AI Chat Bot
+
+🤖 Ask me anything
+⚡ Fast Replies
+🧠 AI Powered
+
+━━━━━━━━━━━━━
+✨ xCHAMi STUDIO`,
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: '📢 Updates',
+              url: 'https://t.me/yourchannel'
+            },
+            {
+              text: '👨‍💻 Owner',
+              url: 'https://t.me/yourusername'
+            }
+          ]
+        ]
+      }
+    }
+  );
+});
+
+// All Messages
 bot.on('message', async (msg) => {
   try {
     const chatId = msg.chat.id;
     const text = msg.text;
 
+    // Ignore empty messages
     if (!text) return;
 
-    // Start Command
-    if (text === '/start') {
-      return bot.sendMessage(
-        chatId,
-        '👋 Welcome! Mama xCHAMi MD AI BOT.'
-      );
-    }
+    // Ignore commands
+    if (text.startsWith('/')) return;
 
-    // Ping Command
-    if (text === '/ping') {
-      return bot.sendMessage(chatId, '✅ Online');
-    }
-
-    // Owner Only Bot Info Command
-    if (text === '/botinfo') {
-      if (String(chatId) !== process.env.OWNER_ID) {
-        return bot.sendMessage(
-          chatId,
-          '❌ You are not authorized.'
-        );
-      }
-
-      return bot.sendMessage(
-        chatId,
-        `📊 Bot Information
-
-👤 Users: Public
-🤖 Status: Online
-⚡ System: Active
-🧠 AI Connected: Yes`,
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text: '📢 Channel',
-                  url: 'https://t.me/yourchannel'
-                }
-              ],
-              [
-                {
-                  text: '👨‍💻 Owner',
-                  url: 'https://t.me/yourusername'
-                }
-              ]
-            ]
-          }
-        }
-      );
-    }
-
-    bot.sendChatAction(chatId, 'typing');(chatId, 'typing');
+    // Typing Status
+    bot.sendChatAction(chatId, 'typing');
 
     // API Request
-    const response = await axios.post(
-      API_URL,
-      {
-        message: text,
-        prompt: SYSTEM_PROMPT,
-        user_id: chatId
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
+    const response = await axios.get(
+      `${API_URL}?q=${encodeURIComponent(
+        `${SYSTEM_PROMPT}\nUser: ${text}`
+      )}`
     );
 
-    // API response text
+    // API Reply
     const reply =
       response.data.reply ||
       response.data.message ||
-      'No response';
+      response.data.answer ||
+      JSON.stringify(response.data);
 
-    // Send reply with buttons
+    // Send Message
     bot.sendMessage(
       chatId,
       `${reply}
@@ -122,19 +105,55 @@ bot.on('message', async (msg) => {
             [
               {
                 text: '🤖 Bot Info',
-                callback_data: 'info'
+                callback_data: 'botinfo'
               }
             ]
           ]
         }
       }
     );
-  } catch (err) {
-    console.log(err.response?.data || err.message);
+
+  } catch (error) {
+    console.log(error.response?.data || error.message);
 
     bot.sendMessage(
       msg.chat.id,
-      '❌ API Error'
+      `❌ Error while getting response
+
+━━━━━━━━━━━━━
+✨ xCHAMi STUDIO`
     );
+  }
+});
+
+// Button Clicks
+bot.on('callback_query', async (query) => {
+  const chatId = query.message.chat.id;
+  const data = query.data;
+
+  // Owner Only Bot Info
+  if (data === 'botinfo') {
+
+    if (String(chatId) !== process.env.OWNER_ID) {
+      return bot.answerCallbackQuery(query.id, {
+        text: '❌ Owner Only Command',
+        show_alert: true
+      });
+    }
+
+    bot.sendMessage(
+      chatId,
+      `📊 Bot Information
+
+🤖 Status : Online
+⚡ System : Active
+🌐 API : Connected
+👤 Access : Public Users
+
+━━━━━━━━━━━━━
+✨ xCHAMi STUDIO`
+    );
+
+    bot.answerCallbackQuery(query.id);
   }
 });
