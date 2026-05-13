@@ -216,11 +216,11 @@ ${FOOTER}`,
           [
             {
               text: '📢 Updates',
-              url: 'https://t.me/yourchannel'
+              url: 'https://whatsapp.com/channel/0029VbCF2dtJP20wrdbtIo43'
             },
             {
               text: '👨‍💻 Owner',
-              url: 'https://t.me/yourusername'
+              url: 'Chamidu Harshana'
             }
           ],
           [
@@ -465,7 +465,7 @@ ${FOOTER}`,
             [
               {
                 text: '📢 Updates',
-                url: 'https://t.me/yourchannel'
+                url: 'https://whatsapp.com/channel/0029VbCF2dtJP20wrdbtIo43'
               },
               {
                 text: '👨‍💻 Owner',
